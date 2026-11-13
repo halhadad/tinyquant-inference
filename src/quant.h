@@ -29,7 +29,9 @@ QMatrix qmatrix_from_f32(const Matrix *m);
 void qmatrix_free(QMatrix *m);
 size_t qmatrix_bytes(const QMatrix *m);
 
-/* Dot product of QK int8 pairs. */
+/* Dot product of QK int8 pairs. dot_q8 uses AVX2 when it was compiled in.
+ * The AVX2 version needs every value to be in -127..127. A -128 can overflow it.
+ * quantize_row never produces -128. */
 int32_t dot_q8_scalar(const int8_t *a, const int8_t *b);
 int32_t dot_q8(const int8_t *a, const int8_t *b);
 const char *q8_kernel_name(void);

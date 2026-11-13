@@ -5,6 +5,10 @@
 
 #include "util.h"
 
+#ifdef __AVX2__
+#include <immintrin.h>
+#endif
+
 int quant_blocks(int n) {
     return (n + QK - 1) / QK;
 }
@@ -75,6 +79,33 @@ int32_t dot_q8_scalar(const int8_t *a, const int8_t *b) {
     return sum;
 }
 
+#ifdef __AVX2__
+
+const char *q8_kernel_name(void) {
+    return "avx2";
+}
+
+int32_t dot_q8(const int8_t *a, const int8_t *b) {
+    __m256i va = _mm256_loadu_si256((const __m256i *)a);
+    __m256i vb = _mm256_loadu_si256((const __m256i *)b);
+
+    /* maddubs wants one unsigned operand, so move the sign of a onto b */
+    __m256i abs_a = _mm256_sign_epi8(va, va);
+    __m256i signed_b = _mm256_sign_epi8(vb, va);
+
+    __m256i pairs16 = _mm256_maddubs_epi16(abs_a, signed_b);
+    __m256i sums32 = _mm256_madd_epi16(pairs16, _mm256_set1_epi16(1));
+
+    __m128i lo = _mm256_castsi256_si128(sums32);
+    __m128i hi = _mm256_extracti128_si256(sums32, 1);
+    __m128i s = _mm_add_epi32(lo, hi);
+    s = _mm_hadd_epi32(s, s);
+    s = _mm_hadd_epi32(s, s);
+    return _mm_cvtsi128_si32(s);
+}
+
+#else
+
 const char *q8_kernel_name(void) {
     return "scalar";
 }
@@ -82,6 +113,8 @@ const char *q8_kernel_name(void) {
 int32_t dot_q8(const int8_t *a, const int8_t *b) {
     return dot_q8_scalar(a, b);
 }
+
+#endif
 
 void matvec_q8(float *out, const QMatrix *m, const int8_t *xq, const float *xscales) {
     for (int r = 0; r < m->rows; r++) {
