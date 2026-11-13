@@ -1,0 +1,10 @@
+build/
+build-asan/
+tinyquant
+*.o
+*.exe
+data/
+models/
+__pycache__/
+.venv/
+.vscode/
