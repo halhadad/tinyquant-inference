@@ -8,7 +8,10 @@ OBJ = $(SRC:src/%.c=build/%.o)
 HEADERS = $(wildcard src/*.h) $(wildcard tests/*.h)
 TESTS = build/test_matrix build/test_quant build/test_mlp
 
-all: test
+all: tinyquant
+
+tinyquant: $(OBJ) build/main.o
+	$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
 
 build/%.o: src/%.c $(HEADERS) | build
 	$(CC) $(CFLAGS) -c -o $@ $<
