@@ -3,7 +3,7 @@ ARCH ?= -march=native
 CFLAGS = -std=gnu11 -O3 $(ARCH) -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wno-sign-conversion
 LDLIBS = -lm
 
-SRC = src/matrix.c src/quant.c src/mlp.c
+SRC = src/matrix.c src/quant.c src/mlp.c src/dataset.c
 OBJ = $(SRC:src/%.c=build/%.o)
 HEADERS = $(wildcard src/*.h) $(wildcard tests/*.h)
 TESTS = build/test_matrix build/test_quant build/test_mlp
