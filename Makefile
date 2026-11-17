@@ -8,16 +8,22 @@ OBJ = $(SRC:src/%.c=build/%.o)
 HEADERS = $(wildcard src/*.h) $(wildcard tests/*.h)
 TESTS = build/test_matrix build/test_quant build/test_mlp build/test_io
 
+# build/flags changes only when the compiler flags change, so a new ARCH rebuilds everything.
+FLAGS = build/flags
+
 all: tinyquant
 
 tinyquant: $(OBJ) build/main.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
 
-build/%.o: src/%.c $(HEADERS) | build
+build/%.o: src/%.c $(HEADERS) $(FLAGS) | build
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-build/test_%: tests/test_%.c $(OBJ) $(HEADERS) | build
+build/test_%: tests/test_%.c $(OBJ) $(HEADERS) $(FLAGS) | build
 	$(CC) $(CFLAGS) -o $@ $< $(OBJ) $(LDLIBS)
+
+$(FLAGS): FORCE | build
+	@echo '$(CC) $(CFLAGS)' | cmp -s - $@ || echo '$(CC) $(CFLAGS)' > $@
 
 build:
 	mkdir -p build
@@ -37,4 +43,6 @@ asan:
 clean:
 	rm -rf build build-asan tinyquant
 
-.PHONY: all test asan clean
+FORCE:
+
+.PHONY: all test asan clean FORCE
