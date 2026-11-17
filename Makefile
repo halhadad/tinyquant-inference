@@ -6,7 +6,7 @@ LDLIBS = -lm
 SRC = src/matrix.c src/quant.c src/mlp.c src/dataset.c
 OBJ = $(SRC:src/%.c=build/%.o)
 HEADERS = $(wildcard src/*.h) $(wildcard tests/*.h)
-TESTS = build/test_matrix build/test_quant build/test_mlp
+TESTS = build/test_matrix build/test_quant build/test_mlp build/test_io
 
 all: tinyquant
 
@@ -28,7 +28,7 @@ test: $(TESTS)
 # Same tests, built with AddressSanitizer and UBSan.
 asan:
 	mkdir -p build-asan
-	@for t in matrix quant mlp; do \
+	@for t in matrix quant mlp io; do \
 		$(CC) -std=gnu11 -O1 -g $(ARCH) -fsanitize=address,undefined \
 			-o build-asan/test_$$t tests/test_$$t.c $(SRC) $(LDLIBS) && \
 		./build-asan/test_$$t || exit 1; \
